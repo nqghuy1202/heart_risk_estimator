@@ -6,13 +6,10 @@
         <title>Heart disease risk — AdaBoost classifier</title>
         <meta name="description"
             content="An AdaBoost classifier that reads thirteen clinical measurements and returns a heart disease risk class, trained on the UCI Heart Disease dataset.">
-        <link rel="icon" href="{% static 'basicConcepts/favicon.svg' %}"
+        <link rel="icon" href="{% static 'predictor/favicon.svg' %}"
             type="image/svg+xml">
         {% comment %}
-        Built by Vite from frontend/. Local files only — no CDN, no web fonts,
-        so the page
-        renders with the network off. Run `npm run build` in frontend/ after
-        changing it.
+        Built by Vite from frontend/. Run `npm run build` there after changing it.
         {% endcomment %}
         <link rel="stylesheet" href="{% static 'frontend/app.css' %}">
     </head>
@@ -22,11 +19,10 @@
             <p
                 style="max-width: 60ch; margin: 48px auto; padding: 0 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.55;">
                 This page is a React application and needs JavaScript enabled.
-                The prediction itself
-                runs on the server: <code>POST /api/predict/</code> takes a JSON
-                object of the thirteen
-                clinical features and returns the risk class and the vote
-                margin.
+                The prediction runs on the server:
+                <code>POST /api/predict/</code> takes a JSON object of the
+                thirteen clinical features and returns the risk class and the
+                vote margin.
             </p>
         </noscript>
         <script type="module" src="{% static 'frontend/app.js' %}"></script>

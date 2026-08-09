@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: "../Demo_Adaboost/basicConcepts/static/frontend",
+    outDir: "../backend/predictor/static/frontend",
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {

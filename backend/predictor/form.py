@@ -1,19 +1,14 @@
 """Input form for the heart disease predictor.
 
-The 13 fields mirror the UCI Heart Disease feature set, in the same order the model
-was trained on (see heart.csv). Value ranges come from the dataset documentation, so
-out-of-domain input is rejected before it ever reaches the classifier.
+The 13 fields mirror the UCI Heart Disease feature set. Value ranges come from the
+dataset documentation.
 """
 
 from django import forms
 
 
 def _range_errors(low, high) -> dict:
-    """Replace Django's two one-sided range messages with a single message stating the range.
-
-    "Ensure this value is greater than or equal to 80" makes the reader work out the other
-    bound; "Enter a value between 80 and 220" does not.
-    """
+    """Replace Django's two one-sided range messages with one that states both bounds."""
     message = f"Enter a value between {low} and {high}."
     return {"min_value": message, "max_value": message}
 
@@ -56,7 +51,7 @@ THAL_CHOICES = [
     (3, "Reversible defect"),
 ]
 
-# Feature order expected by the trained model — do not reorder without retraining.
+# Feature order expected by the trained model. Do not reorder without retraining.
 FEATURE_ORDER = [
     "age",
     "sex",
@@ -73,9 +68,8 @@ FEATURE_ORDER = [
     "thal",
 ]
 
-# Display order, which is deliberately *not* FEATURE_ORDER: the model contract is not a
-# presentation concern. Grouping runs easiest-to-hardest, so the fields needing an ECG or a
-# stress test come last. The template renders these groups and never names a field itself.
+# Display order, deliberately not FEATURE_ORDER. Grouped easiest first, so the fields
+# needing an ECG or a stress test come last.
 FIELD_GROUPS = [
     ("Patient", ["age", "sex"]),
     ("Vitals and bloodwork", ["trestbps", "chol", "fbs", "thalach"]),
@@ -176,11 +170,7 @@ class TestForm(forms.Form):
 
 
 def _describe_field(name: str, field: forms.Field) -> dict:
-    """Describe one field well enough for a client to render and pre-validate it.
-
-    Everything a control needs — wording, units, bounds, options — is stated once here,
-    on the same object that enforces it, so the browser cannot drift from the server.
-    """
+    """Describe one field well enough for a client to render and pre-validate it."""
     described = {
         "name": name,
         "label": field.label,
@@ -188,8 +178,7 @@ def _describe_field(name: str, field: forms.Field) -> dict:
     }
     if isinstance(field, forms.ChoiceField):
         described["kind"] = "choice"
-        # Values stay strings: they travel as form values and are coerced back to int
-        # by TypedChoiceField on the way in.
+        # Values stay strings; TypedChoiceField coerces them back to int on the way in.
         described["choices"] = [{"value": str(value), "label": label} for value, label in field.choices]
     else:
         is_float = isinstance(field, forms.FloatField)
@@ -199,17 +188,16 @@ def _describe_field(name: str, field: forms.Field) -> dict:
             max=field.max_value,
             # oldpeak is the only non-integer measurement.
             step=0.1 if is_float else 1,
-            # Numeric keypad on a phone; the decimal point only where it is meaningful.
+            # Numeric keypad on a phone, with a decimal point only where it is meaningful.
             inputmode="decimal" if is_float else "numeric",
         )
     return described
 
 
 def field_schema() -> dict:
-    """The full form contract: display groups, and the description of every field.
+    """The full form contract: display groups and the description of every field.
 
-    Serving this rather than hard-coding it in the client keeps FIELD_GROUPS the single
-    place display order is decided, exactly as it was when a Django template rendered it.
+    Serving this keeps FIELD_GROUPS the single place display order is decided.
     """
     form = TestForm()
     return {

@@ -37,8 +37,7 @@ export function Field({ spec, value, errors, onChange }: FieldProps) {
       </label>
 
       {spec.kind === "choice" ? (
-        // Native <select>: keyboard- and screen-reader-correct for free, and it already
-        // matches the document aesthetic once the caret is replaced.
+        // Native <select>, restyled only at the caret.
         <select {...shared} className="select">
           {spec.choices.map((choice) => (
             <option key={choice.value} value={choice.value}>
@@ -47,8 +46,7 @@ export function Field({ spec, value, errors, onChange }: FieldProps) {
           ))}
         </select>
       ) : (
-        // min/max/step mirror the Django field, so the browser enforces the same range the
-        // server does. Units live in the label, never as a suffix inside the input.
+        // min/max/step mirror the Django field so the browser enforces the same range.
         <input
           {...shared}
           className="input"

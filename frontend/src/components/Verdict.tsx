@@ -15,8 +15,7 @@ export function Verdict({ prediction, nEstimators }: VerdictProps) {
       <p className="margin-value">
         <b>{prediction.confidence}%</b> — {prediction.bandLabel}
       </p>
-      {/* Five discrete steps, aria-hidden because the figure and the band name above already
-          state the value in text. It encodes the band, not a width. */}
+      {/* aria-hidden: the figure and band name above already state this in text. */}
       <p className="steps" aria-hidden="true">
         {prediction.bandScale.map((filled, index) => (
           <span key={index} className={filled ? "on" : undefined} />

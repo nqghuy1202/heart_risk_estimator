@@ -124,8 +124,7 @@ export function App() {
       <TopBar />
 
       <main className="wrap">
-        {/* The rail comes first in DOM order, so a screen reader reaches the verdict before
-            the form it belongs to. */}
+        {/* Rail first in DOM order, so a screen reader reaches the verdict before the form. */}
         <div className="rail">
           <h1>Risk assessment</h1>
           <p className="intro">
