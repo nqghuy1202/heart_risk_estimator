@@ -1,110 +1,34 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dự Đoán Bệnh Tim</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-</head>
-<body>
-    <h1>Dự Đoán Bệnh Tim</h1>
-    <form class="row g-3" action="result">
-        <div class="col-md-3">
-          <label for="inputAge" class="form-label">Tuổi</label>
-          <input type="number" class="form-control" id="inputAge" name="age" required>
-        </div>
-        <div class="col-md-3" action="result">
-            <label for="inputGender" class="form-label">Giói tính</label>
-            <select id="inputGender" class="form-select" name="gender" required >
-              <option value="1" selected>Nam</option>
-              <option value="0">Nữ</option>
-            </select>
-          </div>
-        <div class="col-3" action="result">
-          <label for="inputChestPain" class="form-label">Loại đau ngực</label>
-          <select id="inputChestPain" class="form-select" name="chestPain" required >
-            <option value="0" selected>Không đau thắt ngực</option>
-            <option value="1">Đau thắt ngực điển hình</option>
-            <option value="2">Đau thắt ngực không điển hình</option>
-            <option value="3">Đau nhưng không giống đau thắt ngực</option>
-          </select>
-          <!-- <input type="number" class="form-control" id="inputChestPain" name="chestPain" required > -->
-        </div>
-        <div class="col-3" action="result">
-          <label for="inputBloodPressure" class="form-label">Huyết áp (in mm Hg)</label>
-          <input type="number" class="form-control" id="inputBloodPressure" name="bloodPressure" required >
-        </div>
-        <div class="col-md-3" action="result">
-          <label for="inputCholesterol" class="form-label">Mức cholesterol (in mg/dL)</label>
-          <input type="number" class="form-control" id="inputCholesterol" name="cholesterol" required >
-        </div>
-        <div class="col-md-3" action="result">
-          <label for="inputBloodSugar" class="form-label">Đường huyết lúc đói > 120 mg/dL</label>
-          <select id="inputBloodSugar" class="form-select" name="bloodSugar" required >
-            <option value="1" selected>Có</option>
-            <option value="0">Không</option>
-          </select>
-        </div>
-        <div class="col-md-3" action="result">
-          <label for="inputElectrocardiographic" class="form-label">Kết quả điện tâm đồ khi nghỉ ngơi</label>
-          <select id="inputElectrocardiographic" class="form-select" name="Electrocardiographic" required >
-            <option value="0" selected>Không bất thường</option>
-            <option value="1">Một chút bất thường</option>
-            <option value="2">Bất thường</option>
-          </select>
-          <!-- <input type="number" class="form-control" id="inputElectrocardiographic" name="Electrocardiographic" required > -->
-        </div>
-        <div class="col-3" action="result">
-            <label for="inputHeartRate" class="form-label">Nhịp tim tối đa đạt được/phút</label>
-            <input type="number" class="form-control" id="inputHeartRate" name="heartRate" required >
-        </div>
-        <div class="col-md-6" action="result">
-            <label for="inputPatient" class="form-label">Đau thắt ngực do vận động</label>
-            <select id="inputPatient" class="form-select" name="patient" required > 
-              <option value="1" selected>Có</option>
-              <option value="0">Không</option>
-            </select>
-        </div>
-        <div class="col-6" action="result">
-            <label for="inputST" class="form-label">Chỉ số điện tâm đồ chênh xuống do tập thể dục so với nghỉ ngơi</label>
-            <input type="number" class="form-control" id="inputST" name="ST" required >
-        </div>
-        <div class="col-4" action="result">
-            <label for="inputSlopeofThePeak" class="form-label">Độ dốc của đoạn chỉ số điện tâm đồ bài tập đỉnh</label>
-            <select id="inputSlopeofThePeak" class="form-select" name="slope" required >
-              <option value="0" selected>Không</option>
-              <option value="1">Dốc lên</option>
-              <option value="2">Dốc xuống</option>
-            </select>
-            <!-- <input type="number" class="form-control" id="inputSlopeofThePeak" name="slope" required > -->
-        </div>
-        <div class="col-5" action="result">
-            <label for="inputMajorVessels" class="form-label">Số mạch chính được nhuộm màu bằng phương pháp soi huỳnh quang</label>
-            <input type="number" class="form-control" id="inputMajorVessels" name="majorVessels" required >
-        </div>
-        <div class="col-3" action="result">
-            <label for="inputThalassemiaLevel" class="form-label">Một số hội chứng rối loạn về máu</label>
-            <select id="inputThalassemiaLevel" class="form-select" name="thailassemialLevel" required >
-              <option value="0" selected>Không có hội chứng</option>
-              <option value="1">Hội chứng alpha</option>
-              <option value="2">Hội chứng beta</option>
-              <option value="3">Mắc cả 2 hội chứng</option>
-            </select>
-            <!-- <input type="number" class="form-control" id="inputThalassemiaLevel" name="thailassemialLevel" required > -->
-        </div>
-        <!-- <div class="col-12">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck">
-            <label class="form-check-label" for="gridCheck">
-              Check me out
-            </label>
-          </div>
-        </div> -->
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary">Chuẩn đoán</button>
-        </div>
-      </form>
-      <h2>Kết quả: {{ result }}</h2>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Heart disease risk — AdaBoost classifier</title>
+        <meta name="description"
+            content="An AdaBoost classifier that reads thirteen clinical measurements and returns a heart disease risk class, trained on the UCI Heart Disease dataset.">
+        <link rel="icon" href="{% static 'basicConcepts/favicon.svg' %}"
+            type="image/svg+xml">
+        {% comment %}
+        Built by Vite from frontend/. Local files only — no CDN, no web fonts,
+        so the page
+        renders with the network off. Run `npm run build` in frontend/ after
+        changing it.
+        {% endcomment %}
+        <link rel="stylesheet" href="{% static 'frontend/app.css' %}">
+    </head>
+    <body>
+        <div id="root"></div>
+        <noscript>
+            <p
+                style="max-width: 60ch; margin: 48px auto; padding: 0 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.55;">
+                This page is a React application and needs JavaScript enabled.
+                The prediction itself
+                runs on the server: <code>POST /api/predict/</code> takes a JSON
+                object of the thirteen
+                clinical features and returns the risk class and the vote
+                margin.
+            </p>
+        </noscript>
+        <script type="module" src="{% static 'frontend/app.js' %}"></script>
+    </body>
 </html>

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+
+# Front end. The built bundle under
+# Demo_Adaboost/basicConcepts/static/frontend/ is committed on purpose, so the app runs
+# from a clone with Python alone — Node is only needed to change the UI.
+node_modules/
+frontend/dist/
+
