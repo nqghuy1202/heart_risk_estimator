@@ -1,7 +1,8 @@
-# Build inputs, not serving inputs. The built bundle under backend/predictor/static/
-# stays.
-backend/heart_disease.ipynb
-backend/heart.csv
-backend/predictor/static/frontend/*.map
-frontend/
-docs/
+# Build inputs, not serving inputs. Paths are anchored with a leading slash: an
+# unanchored `frontend/` also matches backend/predictor/static/frontend/, which is
+# the built bundle the deployment exists to serve.
+/backend/heart_disease.ipynb
+/backend/heart.csv
+/backend/predictor/static/frontend/*.map
+/frontend/
+/docs/
