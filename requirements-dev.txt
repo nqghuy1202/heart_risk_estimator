@@ -1,4 +1,4 @@
-# Development / notebook dependencies (install on top of requirements.txt)
+# Notebook dependencies, on top of the runtime ones.
 -r requirements.txt
 pandas==3.0.5
 matplotlib==3.11.1

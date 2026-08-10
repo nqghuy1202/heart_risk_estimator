@@ -138,12 +138,13 @@ off.
 
 ```bash
 git clone https://github.com/nqghuy1202/heart_risk_estimator.git
-cd heart_risk_estimator/backend
+cd heart_risk_estimator
 
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
 pip install -r requirements.txt
+
+cd backend
 python manage.py migrate
 python manage.py runserver
 ```
@@ -166,7 +167,8 @@ npm run dev             # Vite on :5173, proxying /api to Django on :8000
 To re-run the training notebook and regenerate `adaboost.joblib` and the confusion matrix:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt        # from the repository root
+cd backend
 jupyter nbconvert --to notebook --execute --inplace heart_disease.ipynb
 ```
 
@@ -209,7 +211,8 @@ other twelve answers are preserved.
 heart_risk_estimator/
 ├── api/index.py                   # Vercel entry point: exports the Django WSGI app
 ├── vercel.json                    # one function, every route rewritten to it
-├── requirements.txt               # points at backend/requirements.txt for the build
+├── requirements.txt               # runtime dependencies, installed by the deployment
+├── requirements-dev.txt           # notebook dependencies on top of those
 ├── backend/
 │   ├── heart_disease.ipynb        # training: EDA, baseline, model selection, evaluation, export
 │   ├── heart.csv                  # UCI dataset, 1,025 records
@@ -222,9 +225,7 @@ heart_risk_estimator/
 │   │       ├── predictor/         # favicon
 │   │       └── frontend/          # the built React bundle (committed)
 │   ├── templates/index.html       # page shell: loads the bundle, nothing else
-│   ├── config/                    # Django project settings
-│   ├── requirements.txt
-│   └── requirements-dev.txt
+│   └── config/                    # Django project settings
 ├── frontend/                      # React + TypeScript source
 │   ├── src/
 │   │   ├── api.ts                 # the Django boundary: types, CSRF, fetch

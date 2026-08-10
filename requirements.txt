@@ -1,3 +1,10 @@
-# Vercel installs from the repository root. Kept as a pointer so the two lists
-# cannot drift apart.
--r backend/requirements.txt
+# Runtime dependencies (Python 3.12). At the repository root because that is where
+# the deployment installs from.
+#
+# pandas is a notebook dependency, not a serving one, and costs 45 MB of the 250 MB
+# serverless function limit. See requirements-dev.txt.
+Django==5.2.17
+scikit-learn==1.9.0
+numpy==2.4.6
+joblib==1.5.3
+whitenoise==6.12.0
