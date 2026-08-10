@@ -1,0 +1,7 @@
+# Build inputs, not serving inputs. The built bundle under backend/predictor/static/
+# stays.
+backend/heart_disease.ipynb
+backend/heart.csv
+backend/predictor/static/frontend/*.map
+frontend/
+docs/

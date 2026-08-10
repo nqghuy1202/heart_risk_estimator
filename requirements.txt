@@ -1,0 +1,3 @@
+# Vercel installs from the repository root. Kept as a pointer so the two lists
+# cannot drift apart.
+-r backend/requirements.txt

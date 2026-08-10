@@ -89,8 +89,10 @@ never hard-codes a field name, a range or a choice, so the browser cannot drift 
 accept, and regrouping the UI stays a one-line change in Python.
 
 **`FEATURE_ORDER` is the contract between the notebook and the app.** It mirrors the column order the
-model was fitted on. Predictions are built as a named `DataFrame`, which pins the column order and keeps
-scikit-learn from warning about missing feature names.
+model was fitted on, and getting it wrong is silent: the model would read cholesterol as a heart rate and
+still return a confident answer. `views.py` therefore checks `FEATURE_ORDER` against the estimator's own
+`feature_names_in_` once at import and refuses to start on a mismatch, rather than validating the order
+on every request by rebuilding a named `DataFrame`.
 
 **The model loads once at import**, not per request, via an absolute path derived from `BASE_DIR`.
 
@@ -117,7 +119,8 @@ curl -X POST http://127.0.0.1:8000/api/predict/ -H 'Content-Type: application/js
 
 ## Tech stack
 
-Python 3.11 · Django 5.2 · scikit-learn 1.9 · pandas · NumPy · joblib · Jupyter · matplotlib/seaborn
+Python 3.12 · Django 5.2 · scikit-learn 1.9 · NumPy · joblib · WhiteNoise, with pandas, Jupyter and
+matplotlib/seaborn confined to the notebook (`requirements-dev.txt`)
 
 React 19 · TypeScript 5.9 · Vite 7 · Vitest + React Testing Library (15 tests covering the form, the
 result panel, validation and focus handling)
@@ -167,6 +170,28 @@ pip install -r requirements-dev.txt
 jupyter nbconvert --to notebook --execute --inplace heart_disease.ipynb
 ```
 
+## Deployment
+
+Deployed to Vercel as a single Python serverless function. `api/index.py` puts `backend/` on the import
+path and exports Django's WSGI callable as `app`; `vercel.json` rewrites every path to it, so one
+function serves the page shell and both endpoints. WhiteNoise serves the committed bundle through the
+staticfiles finders, which means no `collectstatic` step and nothing written to a read-only filesystem.
+
+`settings.py` reads `DJANGO_SECRET_KEY` and `DJANGO_ALLOWED_HOSTS` from the environment and keys the rest
+off `VERCEL`, which the platform sets itself: `DEBUG` off, SQLite pointed at `/tmp`, and
+`SECURE_PROXY_SSL_HEADER` set so Django sees the scheme through the proxy. Locally none of that applies
+and `runserver` behaves as before.
+
+The constraint that shaped this is the 250 MB uncompressed function limit. scipy, NumPy, scikit-learn and
+Django come to 229 MB unzipped; adding pandas makes it 274 MB and the deployment fails. pandas was only
+building a one-row `DataFrame` per request, so it moved to `requirements-dev.txt` and the feature-order
+check described above took over the job it was really doing. That leaves roughly 20 MB of headroom, which
+is the reason for the last of the [next steps](#next-steps).
+
+```bash
+vercel --prod
+```
+
 ## Screenshots
 
 | Empty form | Validation errors |
@@ -182,6 +207,9 @@ other twelve answers are preserved.
 
 ```
 heart_risk_estimator/
+├── api/index.py                   # Vercel entry point: exports the Django WSGI app
+├── vercel.json                    # one function, every route rewritten to it
+├── requirements.txt               # points at backend/requirements.txt for the build
 ├── backend/
 │   ├── heart_disease.ipynb        # training: EDA, baseline, model selection, evaluation, export
 │   ├── heart.csv                  # UCI dataset, 1,025 records
@@ -235,4 +263,7 @@ These affect how much weight the numbers above deserve.
 - A pytest suite covering form validation, the feature-order contract, the two endpoints and both
   prediction branches. The front end has tests, the back end does not yet.
 - Docker packaging and a GitHub Actions pipeline.
-- Production settings: `DEBUG=False`, `SECRET_KEY` and `ALLOWED_HOSTS` from the environment.
+- Trim the deployed bundle. scipy and NumPy are 166 MB of a 250 MB limit, imported so that 21 decision
+  stumps can cast a weighted vote. Exporting the stumps to JSON and scoring them in pure Python would
+  drop every scientific dependency and most of the cold start, at the cost of reimplementing
+  `predict_proba`.

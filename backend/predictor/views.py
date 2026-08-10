@@ -1,10 +1,12 @@
 """Views for the heart disease predictor: the page shell and two JSON endpoints."""
 
 import json
+import warnings
 from pathlib import Path
 
-import pandas as pd
+import numpy as np
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -16,6 +18,24 @@ from predictor.form import FEATURE_ORDER, TestForm, field_schema
 # Loaded once at import time, by absolute path so the working directory does not matter.
 MODEL_PATH = Path(settings.BASE_DIR) / "adaboost.joblib"
 model = load(MODEL_PATH)
+
+# A wrong column order is silent: the model would read cholesterol as a heart rate and
+# still answer confidently. The estimator remembers its training names, so fail loudly
+# at import instead.
+_trained_on = [str(name) for name in getattr(model, "feature_names_in_", FEATURE_ORDER)]
+if _trained_on != FEATURE_ORDER:
+    raise ImproperlyConfigured(
+        f"{MODEL_PATH.name} was fitted on {_trained_on}, but FEATURE_ORDER is {FEATURE_ORDER}."
+    )
+
+# sklearn warns when a named estimator is called without names. That is the check above,
+# already done, so silence it rather than keep pandas around to satisfy it.
+warnings.filterwarnings(
+    "ignore",
+    message="X does not have valid feature names",
+    category=UserWarning,
+    module="sklearn",
+)
 
 POSITIVE_MESSAGE = "Elevated risk of heart disease"
 NEGATIVE_MESSAGE = "Low risk of heart disease"
@@ -49,14 +69,14 @@ def describe_vote(confidence: float) -> tuple[str, list[bool]]:
     return VOTE_BANDS[-1][1], [True] * len(VOTE_BANDS)
 
 
-def _feature_frame(features: dict) -> pd.DataFrame:
-    # Named DataFrame, not a bare list: the model was fitted with feature names.
-    return pd.DataFrame([[features[name] for name in FEATURE_ORDER]], columns=FEATURE_ORDER)
+def _feature_row(features: dict) -> np.ndarray:
+    # One row, columns in training order.
+    return np.array([[features[name] for name in FEATURE_ORDER]], dtype=float)
 
 
 def predict_heart_disease(features: dict) -> int:
     """Predict from validated features. Returns 1 (disease) or 0 (no disease)."""
-    return int(model.predict(_feature_frame(features))[0])
+    return int(model.predict(_feature_row(features))[0])
 
 
 def predict_with_confidence(features: dict) -> tuple[int, float]:
@@ -65,9 +85,9 @@ def predict_with_confidence(features: dict) -> tuple[int, float]:
     AdaBoost derives this from a weighted vote of the stumps, so it is relative
     confidence rather than a calibrated likelihood.
     """
-    frame = _feature_frame(features)
-    label = int(model.predict(frame)[0])
-    probabilities = model.predict_proba(frame)[0]
+    row = _feature_row(features)
+    label = int(model.predict(row)[0])
+    probabilities = model.predict_proba(row)[0]
     confidence = float(probabilities[list(model.classes_).index(label)])
     return label, confidence
 

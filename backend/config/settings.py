@@ -10,22 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Set by the platform. Tells a deployment apart from a local `runserver`.
+ON_VERCEL = bool(os.environ.get('VERCEL'))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-no5e+_=hlbf=m&_&=35kxhga7gd=rhc79wwf+csl$vc@+p+gow'
+def _csv_env(name: str) -> list[str]:
+    """Read a comma-separated environment variable into a list, ignoring blanks."""
+    return [item.strip() for item in os.environ.get(name, '').split(',') if item.strip()]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+# The fallback keeps `runserver` working from a fresh clone; deployments set their own.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-no5e+_=hlbf=m&_&=35kxhga7gd=rhc79wwf+csl$vc@+p+gow',
+)
+
+# On by default locally, off by default once deployed. DJANGO_DEBUG overrides both.
+DEBUG = os.environ.get('DJANGO_DEBUG', '0' if ON_VERCEL else '1') == '1'
+
+# The wildcard covers preview deployments, which each get their own hostname.
+ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1'] + _csv_env('DJANGO_ALLOWED_HOSTS')
+
+# Django checks the Origin header against this list on POST, and it needs the scheme.
+CSRF_TRUSTED_ORIGINS = ['https://*.vercel.app'] + [
+    origin if '://' in origin else f'https://{origin}' for origin in _csv_env('DJANGO_ALLOWED_HOSTS')
+]
 
 
 # Application definition
@@ -42,6 +57,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves the built bundle. Must sit directly after SecurityMiddleware.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,10 +91,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# No models, no rows: this exists only because the contrib apps expect a connection.
+# Deployed, it goes to /tmp, the one writable directory.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': (Path('/tmp') if ON_VERCEL else BASE_DIR) / 'db.sqlite3',
     }
 }
 
@@ -117,6 +136,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# No STATIC_ROOT and no `collectstatic` step: WhiteNoise reads the three committed
+# bundle files through the staticfiles finders, indexing them once per process.
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+
+# TLS terminates at the proxy, so Django needs the header to know the real scheme.
+if ON_VERCEL:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
