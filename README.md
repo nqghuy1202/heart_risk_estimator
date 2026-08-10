@@ -175,9 +175,11 @@ jupyter nbconvert --to notebook --execute --inplace heart_disease.ipynb
 ## Deployment
 
 Deployed to Vercel as a single Python serverless function. `api/index.py` puts `backend/` on the import
-path and exports Django's WSGI callable as `app`; `vercel.json` rewrites every path to it, so one
-function serves the page shell and both endpoints. WhiteNoise serves the committed bundle through the
-staticfiles finders, which means no `collectstatic` step and nothing written to a read-only filesystem.
+path and exports Django's WSGI callable as `app`; `vercel.json` routes every path to it, so one function
+serves the page shell and both endpoints. It routes rather than rewrites deliberately: a rewrite hands
+the function its own destination path, `/api/index`, which matches nothing in the URLconf and 404s the
+whole site. WhiteNoise serves the committed bundle through the staticfiles finders, which means no
+`collectstatic` step and nothing written to a read-only filesystem.
 
 `settings.py` reads `DJANGO_SECRET_KEY` and `DJANGO_ALLOWED_HOSTS` from the environment and keys the rest
 off `VERCEL`, which the platform sets itself: `DEBUG` off, SQLite pointed at `/tmp`, and
@@ -210,7 +212,7 @@ other twelve answers are preserved.
 ```
 heart_risk_estimator/
 ├── api/index.py                   # Vercel entry point: exports the Django WSGI app
-├── vercel.json                    # one function, every route rewritten to it
+├── vercel.json                    # one function, every path routed to it
 ├── requirements.txt               # runtime dependencies, installed by the deployment
 ├── requirements-dev.txt           # notebook dependencies on top of those
 ├── backend/
