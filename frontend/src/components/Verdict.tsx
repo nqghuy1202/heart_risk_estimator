@@ -13,7 +13,7 @@ export function Verdict({ prediction, nEstimators }: VerdictProps) {
 
       <p className="margin-label">Vote margin</p>
       <p className="margin-value">
-        <b>{prediction.confidence}%</b> — {prediction.bandLabel}
+        <b>{prediction.confidence}%</b> - {prediction.bandLabel}
       </p>
       {/* aria-hidden: the figure and band name above already state this in text. */}
       <p className="steps" aria-hidden="true">
