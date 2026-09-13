@@ -12,6 +12,8 @@ import { Awaiting } from "./components/Awaiting";
 import { PredictionForm } from "./components/PredictionForm";
 import { TopBar } from "./components/TopBar";
 import { Verdict } from "./components/Verdict";
+import { useLanguage } from "./i18n/LanguageContext";
+import { validateField } from "./validation";
 
 /** Field names in the order they are displayed, which is not the model's feature order. */
 function displayOrder(schema: Schema): string[] {
@@ -28,6 +30,7 @@ function emptyValues(schema: Schema): Record<string, string> {
 }
 
 export function App() {
+  const { lang, t } = useLanguage();
   const [schema, setSchema] = useState<Schema | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -40,23 +43,52 @@ export function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchSchema(controller.signal)
+    fetchSchema(lang, controller.signal)
       .then((loaded) => {
         setSchema(loaded);
-        setValues(emptyValues(loaded));
+        // Re-fetched on a language switch too: keep whatever the user already typed
+        // rather than wiping the form, and only seed defaults on the very first load.
+        setValues((current) => (Object.keys(current).length === 0 ? emptyValues(loaded) : current));
       })
       .catch((error: unknown) => {
         if (error instanceof Error && error.name === "AbortError") {
           return;
         }
-        setLoadError(error instanceof Error ? error.message : "The form could not be loaded.");
+        setLoadError(error instanceof Error ? error.message : t.schemaLoadError);
       });
     return () => controller.abort();
-  }, []);
+  }, [lang, t.schemaLoadError]);
 
   const handleChange = useCallback((name: string, value: string) => {
     setValues((current) => ({ ...current, [name]: value }));
+    // Editing a flagged field clears its message immediately, rather than leaving a
+    // stale error on screen until the next blur or submit re-checks it.
+    setErrors((current) => {
+      if (!(name in current)) {
+        return current;
+      }
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
   }, []);
+
+  const handleBlur = useCallback(
+    (name: string) => {
+      const spec = schema?.fields[name];
+      if (!spec) {
+        return;
+      }
+      const messages = validateField(spec, values[name] ?? "", t);
+      setErrors((current) => {
+        if (messages.length === 0) {
+          return current;
+        }
+        return { ...current, [name]: messages };
+      });
+    },
+    [schema, values, t],
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!schema) {
@@ -65,7 +97,7 @@ export function App() {
     setPending(true);
     setFormError(null);
     try {
-      const result = await requestPrediction(values);
+      const result = await requestPrediction(values, lang);
       setPrediction(result);
       setErrors({});
     } catch (error: unknown) {
@@ -75,13 +107,13 @@ export function App() {
         setFormError(Object.keys(error.fieldErrors).length > 0 ? null : error.message);
       } else {
         setErrors({});
-        setFormError("The prediction could not be run. Check that the server is still running.");
+        setFormError(t.submitError);
       }
       setRejections((count) => count + 1);
     } finally {
       setPending(false);
     }
-  }, [schema, values]);
+  }, [schema, values, lang, t]);
 
   const firstInvalid = schema ? displayOrder(schema).find((name) => name in errors) : undefined;
   const lastFocused = useRef(0);
@@ -109,7 +141,7 @@ export function App() {
       <>
         <TopBar />
         <main>
-          <p className="status-note">Loading the form…</p>
+          <p className="status-note">{t.loading}</p>
         </main>
       </>
     );
@@ -118,7 +150,7 @@ export function App() {
   return (
     <>
       <a className="skip-link" href="#form">
-        Skip to the form
+        {t.skipLink}
       </a>
 
       <TopBar />
@@ -126,11 +158,8 @@ export function App() {
       <main className="wrap">
         {/* Rail first in DOM order, so a screen reader reaches the verdict before the form. */}
         <div className="rail">
-          <h1>Risk assessment</h1>
-          <p className="intro">
-            Fill in thirteen clinical measurements. An AdaBoost classifier returns a risk class
-            and how firmly its stumps voted for it.
-          </p>
+          <h1>{t.heading}</h1>
+          <p className="intro">{t.intro}</p>
 
           <dl className="facts">
             {schema.modelCard.map((entry) => (
@@ -157,15 +186,12 @@ export function App() {
             errors={errors}
             pending={pending}
             onChange={handleChange}
+            onBlur={handleBlur}
             onSubmit={handleSubmit}
           />
 
           <footer className="notes">
-            <p>
-              AdaBoost (scikit-learn) trained on the UCI Heart Disease dataset. The number of
-              estimators was chosen on the test set rather than a validation split, so the
-              accuracy above is mildly optimistic, and the dataset contains duplicated records.
-            </p>
+            <p>{t.footerNote}</p>
           </footer>
         </div>
       </main>

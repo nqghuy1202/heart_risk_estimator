@@ -6,6 +6,25 @@
     --line-dark: #888888;
     --grey-text: #5a5a5a;
     --grey-meta: #6e6e6e;
+    --radius: 6px;
+    --risk-high: #b3401f;
+    --risk-high-bg: #fbece6;
+    --risk-high-line: #e7c3b3;
+    --risk-low: #2f7d4f;
+    --risk-low-bg: #e9f5ee;
+    --risk-low-line: #bfe0cd;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 * {
@@ -86,6 +105,46 @@ a:hover {
     color: var(--grey-text);
 }
 
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.lang-switch {
+    display: flex;
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.lang-option {
+    height: 28px;
+    padding: 0 12px;
+    border: none;
+    border-left: 1px solid var(--line-dark);
+    background-color: white;
+    color: black;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.lang-option:first-child {
+    border-left: none;
+}
+
+.lang-option:hover {
+    background-color: #f4f4f4;
+}
+
+.lang-option.on {
+    background-color: black;
+    color: white;
+}
+
 .wrap {
     max-width: 1720px;
     margin: 0 auto;
@@ -143,6 +202,7 @@ a:hover {
     margin-top: 32px;
     padding: 20px;
     border: 1px solid var(--line);
+    border-radius: var(--radius);
 }
 
 .awaiting-title {
@@ -160,30 +220,31 @@ a:hover {
 .verdict {
     margin-top: 32px;
     padding: 20px;
-    border: 1px solid black;
+    border: 1px solid var(--risk-low-line);
+    border-radius: var(--radius);
+    background-color: var(--risk-low-bg);
 }
 
 .verdict.high {
-    background-color: black;
-    color: white;
-    border-color: black;
+    background-color: var(--risk-high-bg);
+    border-color: var(--risk-high-line);
 }
 
 .badge {
     display: inline-block;
     margin: 0 0 14px;
     padding: 4px 10px;
+    border-radius: var(--radius);
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    background-color: black;
+    background-color: var(--risk-low);
     color: white;
 }
 
 .verdict.high .badge {
-    background-color: var(--brown);
-    color: white;
+    background-color: var(--risk-high);
 }
 
 .verdict-line {
@@ -191,6 +252,11 @@ a:hover {
     font-size: 20px;
     font-weight: bold;
     line-height: 1.25;
+    color: var(--risk-low);
+}
+
+.verdict.high .verdict-line {
+    color: var(--risk-high);
 }
 
 .margin-label {
@@ -199,13 +265,10 @@ a:hover {
     color: var(--grey-text);
 }
 
-.verdict.high .margin-label {
-    color: var(--line);
-}
-
 .margin-value {
     margin: 0 0 10px;
     font-size: 15px;
+    color: black;
 }
 
 .margin-value b {
@@ -221,33 +284,29 @@ a:hover {
 .steps span {
     width: 26px;
     height: 10px;
+    border-radius: 2px;
     background-color: var(--line);
 }
 
 .steps span.on {
-    background-color: black;
-}
-
-.verdict.high .steps span {
-    background-color: #3d3d3d;
+    background-color: var(--risk-low);
 }
 
 .verdict.high .steps span.on {
-    background-color: white;
+    background-color: var(--risk-high);
 }
 
 .small-print {
     margin: 20px 0 0;
     padding-top: 16px;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--risk-low-line);
     font-size: 13px;
     line-height: 1.5;
     color: var(--grey-text);
 }
 
 .verdict.high .small-print {
-    border-top-color: #3d3d3d;
-    color: var(--line);
+    border-top-color: var(--risk-high-line);
 }
 
 .errors-summary {
@@ -255,6 +314,7 @@ a:hover {
     padding: 12px 16px;
     border: 1px solid var(--red);
     border-left-width: 4px;
+    border-radius: var(--radius);
     color: var(--red);
     font-size: 15px;
 }
@@ -280,7 +340,8 @@ a:hover {
     align-items: start;
 }
 
-.field label {
+.field label,
+.field-label {
     display: block;
     min-height: 41px;
     margin-bottom: 6px;
@@ -289,11 +350,21 @@ a:hover {
     line-height: 1.35;
 }
 
-.col-name {
-    margin-left: 6px;
-    font-size: 12px;
+.col-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    margin-left: 7px;
+    border: 1px solid var(--line-dark);
+    border-radius: 50%;
+    font-size: 10px;
     font-weight: normal;
+    line-height: 1;
     color: var(--grey-meta);
+    vertical-align: middle;
+    cursor: help;
 }
 
 .input,
@@ -302,7 +373,7 @@ a:hover {
     height: 40px;
     padding: 0 10px;
     border: 1px solid var(--line-dark);
-    border-radius: 0;
+    border-radius: var(--radius);
     background-color: white;
     color: black;
     font-family: inherit;
@@ -335,6 +406,69 @@ a:hover {
     border-width: 2px;
 }
 
+.segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.segmented-option {
+    flex: 1 1 auto;
+    min-width: 84px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+    background-color: white;
+    color: black;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.segmented-option:hover {
+    border-color: black;
+}
+
+.segmented-option.on {
+    background-color: black;
+    border-color: black;
+    color: white;
+}
+
+.field.bad .segmented-option {
+    border-color: var(--red);
+}
+
+.field.bad .segmented-option.on {
+    background-color: var(--red);
+    border-color: var(--red);
+}
+
+.progress {
+    margin: 0 0 32px;
+}
+
+.progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background-color: var(--line);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--brown);
+    transition: width 0.15s ease;
+}
+
+.progress-label {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--grey-text);
+}
+
 .help {
     margin: 6px 0 0;
     font-size: 13px;
@@ -362,7 +496,7 @@ a:hover {
     height: 46px;
     padding: 0 40px;
     border: 1px solid black;
-    border-radius: 0;
+    border-radius: var(--radius);
     background-color: black;
     color: white;
     font-family: inherit;

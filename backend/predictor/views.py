@@ -14,6 +14,15 @@ from django.views.decorators.http import require_GET, require_POST
 from joblib import load
 
 from predictor.form import FEATURE_ORDER, TestForm, field_schema
+from predictor.i18n import (
+    DEFAULT_LANGUAGE,
+    MISC,
+    localize_band_label,
+    localize_form,
+    localize_model_card,
+    resolve_lang,
+    text_for,
+)
 
 # Loaded once at import time, by absolute path so the working directory does not matter.
 MODEL_PATH = Path(settings.BASE_DIR) / "adaboost.joblib"
@@ -92,17 +101,22 @@ def predict_with_confidence(features: dict) -> tuple[int, float]:
     return label, confidence
 
 
-def describe_prediction(features: dict) -> dict:
+def describe_prediction(features: dict, lang: str = DEFAULT_LANGUAGE) -> dict:
     """Run the model and phrase the outcome in the shape the client renders."""
     prediction, confidence = predict_with_confidence(features)
     band_label, band_scale = describe_vote(confidence)
+    is_high_risk = prediction == 1
+    verdict_key = "positive_verdict" if is_high_risk else "negative_verdict"
+    verdict_default = POSITIVE_MESSAGE if is_high_risk else NEGATIVE_MESSAGE
+    badge_key = "badge_high" if is_high_risk else "badge_low"
+    badge_default = "Elevated risk" if is_high_risk else "Low risk"
     # camelCase: the only consumer is the TypeScript client.
     return {
-        "isHighRisk": prediction == 1,
-        "verdict": POSITIVE_MESSAGE if prediction == 1 else NEGATIVE_MESSAGE,
-        "badge": "Elevated risk" if prediction == 1 else "Low risk",
+        "isHighRisk": is_high_risk,
+        "verdict": text_for(MISC, verdict_key, lang, verdict_default),
+        "badge": text_for(MISC, badge_key, lang, badge_default),
         "confidence": round(confidence * 100, 1),
-        "bandLabel": band_label,
+        "bandLabel": localize_band_label(band_label, lang),
         "bandScale": band_scale,
     }
 
@@ -119,8 +133,15 @@ def predictor(request):
 
 @require_GET
 def api_schema(request):
-    """The form contract and the model card: everything needed to draw the page."""
-    return JsonResponse({**field_schema(), "modelCard": MODEL_CARD, "nEstimators": N_ESTIMATORS})
+    """The form contract and the model card: everything needed to draw the page.
+
+    `?lang=vi` returns the Vietnamese translation; anything else (including no
+    parameter) returns English.
+    """
+    lang = resolve_lang(request.GET.get("lang"))
+    return JsonResponse(
+        {**field_schema(lang), "modelCard": localize_model_card(MODEL_CARD, lang), "nEstimators": N_ESTIMATORS}
+    )
 
 
 @require_POST
@@ -136,7 +157,9 @@ def api_predict(request):
     if not isinstance(payload, dict):
         return JsonResponse({"detail": "Expected a JSON object of the 13 features."}, status=400)
 
+    lang = resolve_lang(request.GET.get("lang"))
     form = TestForm(payload)
+    localize_form(form, lang)
     if not form.is_valid():
         return JsonResponse({"errors": form.error_messages_by_field()}, status=400)
-    return JsonResponse({"result": describe_prediction(form.cleaned_data)})
+    return JsonResponse({"result": describe_prediction(form.cleaned_data, lang)})

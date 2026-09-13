@@ -67,16 +67,19 @@ function csrfToken(): string {
   return match?.[1] ? decodeURIComponent(match[1]) : "";
 }
 
-export async function fetchSchema(signal?: AbortSignal): Promise<Schema> {
-  const response = await fetch("/api/schema/", { headers: { Accept: "application/json" }, signal });
+export async function fetchSchema(lang: string, signal?: AbortSignal): Promise<Schema> {
+  const response = await fetch(`/api/schema/?lang=${encodeURIComponent(lang)}`, {
+    headers: { Accept: "application/json" },
+    signal,
+  });
   if (!response.ok) {
     throw new Error(`The form definition could not be loaded (HTTP ${response.status}).`);
   }
   return (await response.json()) as Schema;
 }
 
-export async function requestPrediction(values: Record<string, string>): Promise<Prediction> {
-  const response = await fetch("/api/predict/", {
+export async function requestPrediction(values: Record<string, string>, lang: string): Promise<Prediction> {
+  const response = await fetch(`/api/predict/?lang=${encodeURIComponent(lang)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
