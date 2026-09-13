@@ -1,4 +1,5 @@
 import type { FieldErrors, Schema } from "../api";
+import { useLanguage } from "../i18n/LanguageContext";
 import { Field } from "./Field";
 
 interface PredictionFormProps {
@@ -7,6 +8,7 @@ interface PredictionFormProps {
   errors: FieldErrors;
   pending: boolean;
   onChange: (name: string, value: string) => void;
+  onBlur: (name: string) => void;
   onSubmit: () => void;
 }
 
@@ -16,9 +18,15 @@ export function PredictionForm({
   errors,
   pending,
   onChange,
+  onBlur,
   onSubmit,
 }: PredictionFormProps) {
+  const { t } = useLanguage();
   const hasErrors = Object.keys(errors).length > 0;
+
+  const fieldNames = schema.groups.flatMap((group) => group.fields);
+  const filledCount = fieldNames.filter((name) => (values[name] ?? "").trim() !== "").length;
+  const totalCount = fieldNames.length;
 
   return (
     <form
@@ -30,11 +38,17 @@ export function PredictionForm({
         onSubmit();
       }}
     >
-      {hasErrors && (
-        <p className="errors-summary">
-          Some values need correcting. The affected fields are marked below.
-        </p>
-      )}
+      <div className="progress">
+        <div className="progress-track">
+          <div
+            className="progress-fill"
+            style={{ width: `${totalCount === 0 ? 0 : (filledCount / totalCount) * 100}%` }}
+          />
+        </div>
+        <p className="progress-label">{t.progressLabel(filledCount, totalCount)}</p>
+      </div>
+
+      {hasErrors && <p className="errors-summary">{t.errorsSummary}</p>}
 
       {schema.groups.map((group) => (
         <section className="group" key={group.title}>
@@ -52,6 +66,7 @@ export function PredictionForm({
                   value={values[name] ?? ""}
                   errors={errors[name] ?? []}
                   onChange={onChange}
+                  onBlur={onBlur}
                 />
               );
             })}
@@ -61,11 +76,9 @@ export function PredictionForm({
 
       <div className="submit-row">
         <button type="submit" className="submit-button" disabled={pending}>
-          {pending ? "Predicting..." : "Predict"}
+          {pending ? t.submitting : t.submit}
         </button>
-        <p className="submit-note">
-          Nothing is stored. The values are used for this prediction only.
-        </p>
+        <p className="submit-note">{t.submitNote}</p>
       </div>
     </form>
   );

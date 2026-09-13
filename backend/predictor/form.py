@@ -6,6 +6,8 @@ dataset documentation.
 
 from django import forms
 
+from predictor.i18n import DEFAULT_LANGUAGE, localize_form, localize_group_title
+
 
 def _range_errors(low, high) -> dict:
     """Replace Django's two one-sided range messages with one that states both bounds."""
@@ -194,13 +196,16 @@ def _describe_field(name: str, field: forms.Field) -> dict:
     return described
 
 
-def field_schema() -> dict:
+def field_schema(lang: str = DEFAULT_LANGUAGE) -> dict:
     """The full form contract: display groups and the description of every field.
 
     Serving this keeps FIELD_GROUPS the single place display order is decided.
     """
     form = TestForm()
+    localize_form(form, lang)
     return {
-        "groups": [{"title": title, "fields": names} for title, names in FIELD_GROUPS],
+        "groups": [
+            {"title": localize_group_title(title, lang), "fields": names} for title, names in FIELD_GROUPS
+        ],
         "fields": {name: _describe_field(name, field) for name, field in form.fields.items()},
     }

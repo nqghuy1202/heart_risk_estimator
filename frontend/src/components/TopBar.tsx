@@ -1,4 +1,11 @@
+import { LANGUAGES } from "../i18n/translations";
+import { useLanguage } from "../i18n/LanguageContext";
+
+const LANGUAGE_NAMES: Record<string, string> = { en: "EN", vi: "VI" };
+
 export function TopBar() {
+  const { lang, setLang, t } = useLanguage();
+
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -11,9 +18,24 @@ export function TopBar() {
               strokeWidth="1.5"
             />
           </svg>
-          Heart disease risk
+          {t.topbarTitle}
         </span>
-        <span className="topbar-meta">AdaBoost · UCI Heart Disease</span>
+        <div className="topbar-right">
+          <span className="topbar-meta">{t.topbarMeta}</span>
+          <div className="lang-switch" role="group" aria-label={t.languageLabel}>
+            {LANGUAGES.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`lang-option${option === lang ? " on" : ""}`}
+                aria-pressed={option === lang}
+                onClick={() => setLang(option)}
+              >
+                {LANGUAGE_NAMES[option]}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </header>
   );
