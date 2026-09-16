@@ -1,0 +1,29 @@
+# Chạy trên VPS (dùng chung VPS đang chạy debt-crusher và financal_management):
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# App không có model DB (xem README — "the app has no database models"), nên chỉ 1 service duy
+# nhất, không cần MySQL/Postgres như financal_management. App chỉ bind 127.0.0.1 (không public ra
+# internet) — Nginx cài trên chính VPS (không phải container, xem nginx/care.hlcompany.id.vn.conf)
+# là thứ DUY NHẤT public ra ngoài qua port 80/443, proxy vào app. Cổng host 8082 (khác 8080
+# debt-crusher và 8081 financal_management đã chiếm trên cùng VPS) để tránh đụng port; cổng BÊN
+# TRONG container vẫn 8000 như bình thường.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hlcare-app
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required — set it in .env.prod}
+      DJANGO_DEBUG: "0"
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+    ports:
+      - "127.0.0.1:8082:8000"
+    networks:
+      - hlcare-network
+
+networks:
+  hlcare-network:
+    driver: bridge

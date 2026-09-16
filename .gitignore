@@ -15,4 +15,7 @@ frontend/dist/
 
 # Vercel CLI's local link to the project.
 .vercel/
+.agents/
+.claude/
+skills-locks.json
 

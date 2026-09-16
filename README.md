@@ -1,4 +1,4 @@
-# Heart Risk Estimator — AdaBoost, Django API, React
+# HL Care — AdaBoost, Django API, React
 
 Predicts whether a patient has heart disease from thirteen routine clinical measurements. An AdaBoost
 classifier is trained on the UCI Heart Disease dataset in a Jupyter notebook, serialised with joblib, and

@@ -33,7 +33,7 @@ export interface Translations {
 }
 
 const en: Translations = {
-  topbarTitle: "Heart disease risk",
+  topbarTitle: "HL Care",
   topbarMeta: "AdaBoost · UCI Heart Disease",
   languageLabel: "Choose language",
   skipLink: "Skip to the form",
@@ -72,7 +72,7 @@ const en: Translations = {
 };
 
 const vi: Translations = {
-  topbarTitle: "Nguy cơ bệnh tim",
+  topbarTitle: "HL Care",
   topbarMeta: "AdaBoost · UCI Heart Disease",
   languageLabel: "Chọn ngôn ngữ",
   skipLink: "Đi tới biểu mẫu",
